@@ -99,7 +99,7 @@ async def parse_aliexpress(url: str, db: Session = Depends(get_db)):
     #Проверка на существующий продукт
     existing_product = db.query(ProductModel).filter(ProductModel.sku_id == int(data["sku_id"])).first()
     if existing_product:
-        return data
+        return {"message": "Продукт с таким sku_id уже существует.", "data": existing_product}
     create_product(db=db, sku_id=int(data['sku_id']), price=data['price'], name=data['name'])
     return data
 
@@ -110,7 +110,7 @@ async def parse_wb(nm_id: str, db: Session = Depends(get_db)):
     data = await loop.run_in_executor(executor, get_wb_data, nm_id)
     existing_product = db.query(ProductModel).filter(ProductModel.sku_id == data["nm_id"]).first()
     if existing_product:
-        return data
+        return {"message": "Продукт с таким sku_id уже существует.", "data": existing_product}
     create_product(db=db, sku_id=data['nm_id'],  name=data['name'], price=data['price'])
     return data
 
@@ -121,7 +121,7 @@ async def parse_ym(sku: str, product_id: str, db: Session = Depends(get_db)):
     data = await loop.run_in_executor(executor, get_ym_data,  sku, product_id)
     existing_product = db.query(ProductModel).filter(ProductModel.sku_id == data["nm_id"]).first()
     if existing_product:
-        return data
+        return {"message": "Продукт с таким sku_id уже существует.", "data": existing_product}
     create_product(db=db, sku_id=data['nm_id'], name = data['name'], price=data['price'])
     return data
 

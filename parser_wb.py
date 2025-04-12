@@ -66,7 +66,7 @@ def get_wb_data(nm_id: str):
                 EC.visibility_of_element_located((By.CSS_SELECTOR, 'ins.price-block__final-price'))
             )
             price_text = price_elem.text.strip()
-            result["price"] = price_text.replace('₽', '').replace('\xa0', '').strip()
+            result["price"] = price_text.replace('₽', '').replace('\xa0', '').replace(' ', '')
             logger.info(f"Цена найдена: {result['price']}")
         except Exception as e:
             result["price"] = f"Ошибка: Цена не найдена: {str(e)}"
