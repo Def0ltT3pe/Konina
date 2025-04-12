@@ -26,7 +26,7 @@ def get_aliexpress_data(url: str):
     # Цена
     try:
         price_text = driver.find_element(By.CSS_SELECTOR, '.HazeProductPrice_SnowPrice__mainS__1wzo3').text
-        price = price_text.replace('₽', '').replace('\xa0', '').strip()
+        price = price_text.replace('₽', '').replace('\xa0', '').replace(' ', '')
     except Exception as e:
         price = f"Ошибка: {e}"
 

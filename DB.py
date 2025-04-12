@@ -23,6 +23,11 @@ class Product(Base):
     price = Column(Float)
 
 
+class User(Base):
+    __tablename__ = "users"
+    user_email = Column(String, primary_key=True, index=True)
+    password = Column(String)
+
 # Создайте таблицы в базе данных
 Base.metadata.create_all(bind=engine)
 
