@@ -84,6 +84,6 @@ def get_wb_data(nm_id: str):
 
 # Пример использования
 if __name__ == "__main__":
-    nm_id = "150999584"
+    nm_id = "133281680"
     data = get_wb_data(nm_id)
     print(data)
