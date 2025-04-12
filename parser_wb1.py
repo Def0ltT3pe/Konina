@@ -1,41 +1,48 @@
-# parser_wb1.py
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.firefox.options import Options
+from webdriver_manager.firefox import GeckoDriverManager
 
-def get_wb_price(url):
+
+def get_wb_price(nm_id: str):
+    # Формируем URL на основе nm_id
+    url = f"https://www.wildberries.ru/catalog/{nm_id}/detail.aspx"
+
+    # Настройка Firefox WebDriver
+    service = Service("C:\\Users\\svobo\\Documents\\GitHub\\Konina\\geckodriver-v0.36.0-win64\\geckodriver.exe")  # Обрати внимание: слэши правильные
+    options = webdriver.FirefoxOptions()
+    options.add_argument('--headless')
+
+    driver = webdriver.Firefox(service=service, options=options)
+
     try:
-        # Настройка ChromeDriver
-        service = Service(ChromeDriverManager().install())
-        options = webdriver.ChromeOptions()
-        options.add_argument("--disable-blink-features=AutomationControlled")
-        options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-        options.add_argument('--headless')  # Запуск без графического интерфейса
-
-        # Запуск браузера
-        driver = webdriver.Chrome(service=service, options=options)
         driver.get(url)
 
-        # Извлечение ID из URL (например, nm_id)
-        product_id = url.split('/')[4]  # Предположим, что ID товара идет в URL после /catalog/
+        # Получаем название товара
+        try:
+            name = driver.find_element(By.CSS_SELECTOR, 'h1.goods-name').text
+        except Exception as e:
+            name = f"Ошибка при получении названия: {str(e)}"
 
-        # Извлечение наименования товара
-        name = WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "h1.product-card-title"))
-        ).text
+        # Получаем цену товара
+        try:
+            price = driver.find_element(By.CLASS_NAME, 'price-block__final-price').text
+            # Очищаем цену от лишних символов
+            price = price.replace('₽', '').replace('\xa0', '').strip()
+        except Exception as e:
+            price = f"Ошибка при получении цены: {str(e)}"
 
-        # Извлечение цены товара
-        price = WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "price-block__final-price"))
-        ).text
-
-        return {"product_id": product_id, "name": name, "price": price}
+        return {
+            "nm_id": nm_id,
+            "name": name,
+            "price": price
+        }
 
     except Exception as e:
-        return {"error": f"Ошибка при извлечении данных: {e}"}
-
+        return {
+            "nm_id": nm_id,
+            "error": f"Ошибка при обработке страницы: {str(e)}"
+        }
     finally:
         driver.quit()
