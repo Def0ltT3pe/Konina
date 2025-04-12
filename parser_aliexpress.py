@@ -1,11 +1,11 @@
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.common.by import By
 from urllib.parse import urlparse, parse_qs
 
 def get_aliexpress_data(url: str):
     # Укажите путь к geckodriver
-    service = Service("D:/Konina/geckodriver-v0.36.0-win64/geckodriver.exe")  # Обрати внимание: слэши правильные
+    service = Service("C:\\Users\\svobo\\Documents\\GitHub\\Konina\\geckodriver-v0.36.0-win64\\geckodriver.exe")  # Обрати внимание: слэши правильные
     options = webdriver.FirefoxOptions()
     options.add_argument('--headless')  # Без интерфейса
 
@@ -36,3 +36,4 @@ def get_aliexpress_data(url: str):
         "name": name,
         "price": price
     }
+

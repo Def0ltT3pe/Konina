@@ -16,7 +16,8 @@ def get_wb_price(nm_id):
 
         # Запуск браузера
         driver = webdriver.Chrome(service=service, options=options)
-        driver.get(f"https://www.wildberries.ru/catalog/{nm_id}/detail.aspx")
+        driver.get(nm_id)
+
 
         # Ждём загрузки цены (макс. 15 секунд)
         price = WebDriverWait(driver, 15).until(
@@ -27,3 +28,6 @@ def get_wb_price(nm_id):
         return f"Ошибка: {e}"
     finally:
         driver.quit()
+
+
+
