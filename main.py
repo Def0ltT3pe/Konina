@@ -1,29 +1,19 @@
-from fastapi import FastAPI, Depends
-import uvicorn
-from pydantic import BaseModel
-from sqlalchemy.orm import DeclarativeBase, Mapped
-from sqlalchemy.sql.annotation import Annotated
+from fastapi import FastAPI
+from parser_wb import get_wb_price
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlalchemy.testing.schema import mapped_column
+# Инициализация FastAPI
+app = FastAPI()
 
-engine = create_async_engine('sqlite+aiosqlite:///data_base.db')
+# Создание пула потоков
+executor = ThreadPoolExecutor(max_workers=5)
 
-new_session = async_sessionmaker(engine, expire_on_commit=False)
 
-async def get_session():
-    async with new_session() as session:
-        yield session
+@app.get("/parse/wb")
+async def parse_wb(nm_id: str):
+    loop = asyncio.get_event_loop()
 
-class Base(DeclarativeBase):
-    pass
-
-class User(Base):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str]
-    password: Mapped[str]
-
-#app = FastAPI()
-
-#if __name__ == '__main__':
-#    uvicorn.run("main:app", reload=True)
+    # Асинхронный вызов парсера в отдельном потоке
+    price = await loop.run_in_executor(executor, get_wb_price, nm_id)
+    return {"nm_id": nm_id, "price": price}
