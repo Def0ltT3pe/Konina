@@ -46,7 +46,7 @@ async def parse_aliexpress(url: str, db: Session = Depends(get_db)):
 async def parse_wb(nm_id: str, db: Session = Depends(get_db)):
     loop = asyncio.get_event_loop()
     data = await loop.run_in_executor(executor, get_wb_data, nm_id)
-    create_product(db=db, sku_id=data['nm_id'],  name=data['name'], price=data['price'],)
+    create_product(db=db, sku_id=data['nm_id'],  name=data['name'], price=data['price'])
     return data
 
 
