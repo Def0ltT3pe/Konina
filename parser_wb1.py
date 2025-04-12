@@ -10,7 +10,7 @@ def get_wb_price(nm_id: str):
     url = f"https://www.wildberries.ru/catalog/{nm_id}/detail.aspx"
 
     # Настройка Firefox WebDriver
-    service = Service("C:\\Users\\svobo\\Documents\\GitHub\\Konina\\geckodriver-v0.36.0-win64\\geckodriver.exe")  # Обрати внимание: слэши правильные
+    service = Service("D:\\Konina\\geckodriver-v0.36.0-win64\\geckodriver.exe")  # Обрати внимание: слэши правильные
     options = webdriver.FirefoxOptions()
     options.add_argument('--headless')
 
@@ -21,11 +21,14 @@ def get_wb_price(nm_id: str):
 
         # Получаем название товара
         try:
-            name = driver.find_element(By.CSS_SELECTOR, 'h1.goods-name').text
+        # .product-page__title
+        # name = driver.find_element(By.CSS_SELECTOR, 'h1.goods-name').text
+            name = driver.find_element(By.CLASS_NAME, 'product-page__title').text
         except Exception as e:
             name = f"Ошибка при получении названия: {str(e)}"
 
         # Получаем цену товара
+
         try:
             price = driver.find_element(By.CLASS_NAME, 'price-block__final-price').text
             # Очищаем цену от лишних символов
@@ -46,3 +49,5 @@ def get_wb_price(nm_id: str):
         }
     finally:
         driver.quit()
+
+print(get_wb_price("369971388"))

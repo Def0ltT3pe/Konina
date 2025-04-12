@@ -5,7 +5,7 @@ from urllib.parse import urlparse, parse_qs
 
 def get_aliexpress_data(url: str):
     # Укажите путь к geckodriver
-    service = Service("C:\\Users\\svobo\\Documents\\GitHub\\Konina\\geckodriver-v0.36.0-win64\\geckodriver.exe")  # Обрати внимание: слэши правильные
+    service = Service("D:\\Konina\\geckodriver-v0.36.0-win64\\geckodriver.exe")  # Обрати внимание: слэши правильные
     options = webdriver.FirefoxOptions()
     options.add_argument('--headless')  # Без интерфейса
 
@@ -25,7 +25,8 @@ def get_aliexpress_data(url: str):
 
     # Цена
     try:
-        price = driver.find_element(By.CSS_SELECTOR, '.HazeProductPrice_SnowPrice__mainS__1wzo3').text
+        price_text = driver.find_element(By.CSS_SELECTOR, '.HazeProductPrice_SnowPrice__mainS__1wzo3').text
+        price = price_text.replace('₽', '').replace('\xa0', '').strip()
     except Exception as e:
         price = f"Ошибка: {e}"
 
@@ -36,4 +37,5 @@ def get_aliexpress_data(url: str):
         "name": name,
         "price": price
     }
+
 
