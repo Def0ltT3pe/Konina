@@ -1,3 +1,6 @@
+from typing import Optional
+
+from passlib.context import CryptContext
 from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import sessionmaker, Session, declarative_base
 import os
@@ -36,9 +39,39 @@ def get_product(db: Session, sku_id: str):
     return db.query(Product).filter(Product.sku_id == sku_id).first()
 
 
-def create_product(db: Session, sku_id: str, price: float, name: str):
+def create_product(db: Session, sku_id: int, price: float, name: str):
     db_product = Product(sku_id=sku_id, name=name, price=price)
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
     return db_product
+
+###
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def verify_password(plain_password: str, hashed_password: str):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str):
+    return pwd_context.hash(password)
+
+# Функции для работы с пользователями
+def get_user(db: Session, email: str) -> Optional[User]:
+    return db.query(User).filter(User.user_email == email).first()
+
+def authenticate_user(db: Session, email: str, password: str):
+    user = get_user(db, email)
+    if not user:
+        return False
+    if not verify_password(password, user.password):
+        return False
+    return user
+
+def create_user(db: Session, email: str, password: str):
+    hashed_password = get_password_hash(password)
+    db_user = User(user_email=email, password=hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
