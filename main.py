@@ -1,5 +1,6 @@
 #import requests
 from authx.exceptions import MissingTokenError
+from authx.types import SameSitePolicy
 from fastapi import FastAPI, Depends, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -20,6 +21,8 @@ from starlette.requests import Request
 
 app = FastAPI()
 executor = ThreadPoolExecutor(max_workers=5)
+#scheduler = AsyncIOScheduler(timezone=utc)
+
 
 #config в другой файл?
 config = AuthXConfig()
@@ -70,7 +73,7 @@ def loging(creds: UserLoging, response: Response,  db: Session = Depends(get_db)
     response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, token)
     return {"access_token": True}
 
-
+#@scheduler.scheduled_job('interval', seconds=100)
 @app.post("/register")
 def register(creds: UserLoging, response: Response,  db: Session = Depends(get_db)):
     user = authenticate_user(db, creds.email, creds.password)
