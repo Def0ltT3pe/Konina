@@ -24,6 +24,7 @@ class Product(Base):
     #source = Column(String) # Вб или алик
     name = Column(String)
     price = Column(Float)
+    marketplace = Column(String)
 
 
 class User(Base):
@@ -39,8 +40,8 @@ def get_product(db: Session, sku_id: str):
     return db.query(Product).filter(Product.sku_id == sku_id).first()
 
 
-def create_product(db: Session, sku_id: int, price: float, name: str):
-    db_product = Product(sku_id=sku_id, name=name, price=price)
+def create_product(db: Session, sku_id: int, price: float, name: str, marketplace: str):
+    db_product = Product(sku_id=sku_id, name=name, price=price, marketplace=marketplace)
     db.add(db_product)
     db.commit()
     db.refresh(db_product)

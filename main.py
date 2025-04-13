@@ -1,5 +1,4 @@
-import requests
-
+#import requests
 from authx.exceptions import MissingTokenError
 from fastapi import FastAPI, Depends, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,9 +13,9 @@ import uvicorn
 from authx import AuthX, AuthXConfig
 from parser_ym import get_ym_data
 from starlette import status
-from starlette.requests import Request
-import bcrypt
-from urllib.parse import urlparse, parse_qs
+#from starlette.requests import Request
+#import bcrypt
+#from urllib.parse import urlparse, parse_qs
 from starlette.requests import Request
 
 app = FastAPI()
@@ -104,7 +103,7 @@ async def parse_aliexpress(url: str, db: Session = Depends(get_db)):
     existing_product = db.query(ProductModel).filter(ProductModel.sku_id == int(data["sku_id"])).first()
     if existing_product:
         return {"message": "Продукт с таким sku_id уже существует.", "data": existing_product}
-    create_product(db=db, sku_id=int(data['sku_id']), price=data['price'], name=data['name'])
+    create_product(db=db, sku_id=int(data['sku_id']), price=data['price'], name=data['name'], marketplace=data['marketplace'])
     return data
 
 #GET http://localhost:8000/parse/wb?url=https://www.wildberries.ru/catalog/102855978760/detail.aspx
@@ -120,11 +119,12 @@ async def parse_wb(url: str, db: Session = Depends(get_db)):
     if not nm_id:
         raise HTTPException(status_code=400, detail="Не удалось извлечь nm_id из URL")
 
-    # Теперь вызываем парсер с nm_id
+    # Вызов парсера с nm_id
     loop = asyncio.get_event_loop()
     data = await loop.run_in_executor(executor, get_wb_data, nm_id)
 
     # Преобразуем данные перед их использованием
+    # Да и до этого нормально работало
     nm_id_int = int(data["nm_id"])
     price_float = float(data["price"]) if data["price"] is not None else None
 
@@ -134,7 +134,7 @@ async def parse_wb(url: str, db: Session = Depends(get_db)):
         return {"message": "Продукт с таким nm_id уже существует.", "data": existing_product}
 
     # Запись в базу данных
-    create_product(db=db, sku_id=nm_id_int, name=data['name'], price=price_float)
+    create_product(db=db, sku_id=nm_id_int, name=data['name'], price=price_float, marketplace=data['marketplace'])
     return data
 
 
@@ -144,8 +144,6 @@ async def parse_wb(url: str, db: Session = Depends(get_db)):
 from urllib.parse import urlparse, parse_qs
 import re
 
-
-# Удалите функцию expand_yandex_url, она больше не нужна
 
 @app.get("/parse/ym", dependencies=[Depends(security.access_token_required)])
 async def parse_ym(url: str, db: Session = Depends(get_db)):
@@ -157,7 +155,7 @@ async def parse_ym(url: str, db: Session = Depends(get_db)):
         query_params = parse_qs(parsed_url.query)
         sku = query_params.get('sku', [None])[0]
 
-        # Извлекаем product_id через регулярное выражение (как в parser_ym.py)
+        # Извлекаем product_id через регулярное выражение (как в parser_ym.py)????
         product_id_match = re.search(r'/product--[^/]+/(\d+)', parsed_url.path)
         product_id = product_id_match.group(1) if product_id_match else None
 
@@ -196,7 +194,8 @@ async def parse_ym(url: str, db: Session = Depends(get_db)):
             db=db,
             sku_id=data["nm_id"],
             name=data["name"],
-            price=data["price"]
+            price=data["price"],
+            marketplace = data['marketplace']
         )
 
         return data
