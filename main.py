@@ -36,6 +36,7 @@ security = AuthX(config=config)
 origins = [
     "http://localhost",
     "http://localhost:5174",
+    "http://localhost:5173"
 ]
 
 app.add_middleware(

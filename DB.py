@@ -10,7 +10,7 @@ absolute_path = os.path.abspath('./data_base.db')
 print(absolute_path)
 
 
-DATABASE_URL = "sqlite:///" + absolute_path  # Замените на ваш URL базы данных
+DATABASE_URL = "sqlite:///" + absolute_path
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
