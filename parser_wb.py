@@ -5,10 +5,22 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import logging
+import re
+from urllib.parse import urlparse
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def extract_nm_id_from_url(url: str):
+    """
+    Извлекает nm_id из URL Wildberries.
+    Пример URL: https://www.wildberries.ru/catalog/133281680/detail.aspx
+    """
+    match = re.search(r'/catalog/(\d+)/detail.aspx', url)
+    if match:
+        return match.group(1)
+    return None
 
 def get_wb_data(nm_id: str):
     # Настройка Selenium с Firefox
@@ -31,7 +43,7 @@ def get_wb_data(nm_id: str):
 
         # Инициализация результата
         result = {
-            "nm_id": nm_id,
+            "nm_id": int(nm_id),  # Преобразуем nm_id в int
             "name": None,
             "price": None,
         }
@@ -66,7 +78,8 @@ def get_wb_data(nm_id: str):
                 EC.visibility_of_element_located((By.CSS_SELECTOR, 'ins.price-block__final-price'))
             )
             price_text = price_elem.text.strip()
-            result["price"] = price_text.replace('₽', '').replace('\xa0', '').replace(' ', '')
+            # Убираем ₽, пробелы и заменяем на float
+            result["price"] = float(price_text.replace('₽', '').replace('\xa0', '').replace(' ', ''))
             logger.info(f"Цена найдена: {result['price']}")
         except Exception as e:
             result["price"] = f"Ошибка: Цена не найдена: {str(e)}"
@@ -76,7 +89,7 @@ def get_wb_data(nm_id: str):
 
     except Exception as e:
         logger.error(f"Общая ошибка для nm_id={nm_id}: {str(e)}")
-        return {"nm_id": nm_id, "name": f"Ошибка: {str(e)}", "price": None}
+        return {"nm_id": int(nm_id), "name": f"Ошибка: {str(e)}", "price": None}
     finally:
         if driver:
             driver.quit()
@@ -84,6 +97,13 @@ def get_wb_data(nm_id: str):
 
 # Пример использования
 if __name__ == "__main__":
-    nm_id = "133281680"
-    data = get_wb_data(nm_id)
-    print(data)
+    url = "https://www.wildberries.ru/catalog/133281680/detail.aspx"  # Пример URL
+
+    # Извлекаем nm_id из URL
+    nm_id = extract_nm_id_from_url(url)
+
+    if nm_id:
+        data = get_wb_data(nm_id)
+        print(data)
+    else:
+        print("Ошибка: Не удалось извлечь nm_id из URL")
