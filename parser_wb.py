@@ -46,6 +46,7 @@ def get_wb_data(nm_id: str):
             "nm_id": int(nm_id),  # Преобразуем nm_id в int
             "name": None,
             "price": None,
+            "marketplace":"Wildberries"
         }
 
         # Проверка загрузки страницы
@@ -84,6 +85,16 @@ def get_wb_data(nm_id: str):
         except Exception as e:
             result["price"] = f"Ошибка: Цена не найдена: {str(e)}"
             logger.error(f"Ошибка при поиске цены: {str(e)}")
+        # Получение URL изображения
+        try:
+            image_elem = WebDriverWait(driver, 10).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, 'img[data-link*="photo-slider"]'))
+            )
+            result["image"] = image_elem.get_attribute("src")
+            logger.info(f"Изображение найдено: {result['image']}")
+        except Exception as e:
+            result["image"] = None
+            logger.warning(f"Не удалось получить изображение: {str(e)}")
 
         return result
 

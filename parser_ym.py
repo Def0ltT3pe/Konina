@@ -42,6 +42,7 @@ def get_ym_data(sku: str, product_id: int):
             "nm_id": int(sku) if sku.isdigit() else None,  # Преобразуем nm_id в int
             "name": None,
             "price": None,
+            "marketplace": "Яндекс маркет"
         }
 
         # Увеличиваем время ожидания

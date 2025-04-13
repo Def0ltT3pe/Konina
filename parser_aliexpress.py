@@ -35,7 +35,8 @@ def get_aliexpress_data(url: str):
     return {
         "sku_id": sku_id,
         "name": name,
-        "price": price
+        "price": price,
+        "marketplace": "Aliexpress"
     }
 
 
