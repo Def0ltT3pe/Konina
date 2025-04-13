@@ -47,6 +47,18 @@ def create_product(db: Session, sku_id: int, price: float, name: str, marketplac
     db.refresh(db_product)
     return db_product
 
+
+def update_product(db: Session, sku_id: int, price: float, name: str):
+    # Найти
+    db_product = db.query(Product).filter(Product.sku_id == sku_id).one()
+
+    # Обновление полей
+    db_product.name = name
+    db_product.price = price
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
 ###
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
