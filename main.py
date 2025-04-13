@@ -1,6 +1,7 @@
-#import requests
+import requests
+
 from authx.exceptions import MissingTokenError
-from fastapi import FastAPI, Depends, Response, HTTPException
+from fastapi import FastAPI, Depends, Response, HTTPException,APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -15,7 +16,7 @@ from parser_ym import get_ym_data
 from starlette import status
 #from starlette.requests import Request
 #import bcrypt
-#from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs
 from starlette.requests import Request
 
 app = FastAPI()
@@ -208,5 +209,9 @@ async def parse_ym(url: str, db: Session = Depends(get_db)):
             status_code=500,
             detail=f"Внутренняя ошибка сервера: {str(e)}"
         )
+from auto_parser import router as auto_parser_router
+app.include_router(auto_parser_router)
+
+
 if __name__ == '__main__':
     uvicorn.run("main:app", host="localhost", port=8000, log_level="info")
