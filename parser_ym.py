@@ -4,16 +4,33 @@ from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from urllib.parse import urlparse, parse_qs
+import re
 
-def get_ym_data(sku: str, product_id: str):
+
+def extract_sku_and_product_id(url: str):
+    parsed_url = urlparse(url)
+    query_params = parse_qs(parsed_url.query)
+
+    sku = query_params.get('sku', [None])[0]
+    match = re.search(r'/product--[^/]+/(\d+)', parsed_url.path)
+    product_id = match.group(1) if match else None
+
+    # Преобразуем product_id в int, если он найден
+    product_id = int(product_id) if product_id and product_id.isdigit() else None
+
+    return sku, product_id
+
+
+def get_ym_data(sku: str, product_id: int):
     options = webdriver.FirefoxOptions()
-    # options.add_argument('--headless')  # Раскомментировать для продакшена
+    # options.add_argument('--headless')  # Включи, если не хочешь видеть браузер
     options.add_argument(
         '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0'
     )
     options.set_preference('dom.webdriver.enabled', False)
     options.set_preference('useAutomationExtension', False)
-    options.set_preference('intl.accept_languages', 'ru-RU,ru')  # Русская локаль
+    options.set_preference('intl.accept_languages', 'ru-RU,ru')
 
     driver = None
     try:
@@ -22,12 +39,13 @@ def get_ym_data(sku: str, product_id: str):
         driver.get(url)
 
         result = {
-            "nm_id": sku,
+            "nm_id": int(sku) if sku.isdigit() else None,  # Преобразуем nm_id в int
             "name": None,
             "price": None,
         }
 
-        WebDriverWait(driver, 15).until(
+        # Увеличиваем время ожидания
+        WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.TAG_NAME, "body"))
         )
 
@@ -40,7 +58,7 @@ def get_ym_data(sku: str, product_id: str):
 
         # Название товара
         try:
-            name_elem = WebDriverWait(driver, 15).until(
+            name_elem = WebDriverWait(driver, 30).until(
                 EC.visibility_of_element_located((
                     By.CSS_SELECTOR,
                     'h1[data-additional-zone="title"], h1[data-auto="productCardTitle"], h1'
@@ -50,23 +68,42 @@ def get_ym_data(sku: str, product_id: str):
         except Exception:
             result["name"] = "Ошибка: Название не найдено"
 
-        # Цена товара
+        # Цена товара (с использованием нового селектора для цены)
         try:
-            price_elem = WebDriverWait(driver, 15).until(
-                EC.visibility_of_any_elements_located((
+            price_elem = WebDriverWait(driver, 30).until(
+                EC.presence_of_element_located((
                     By.CSS_SELECTOR,
-                    'span.ds-text.ds-text_weight_bold.ds-text_color_price-term.ds-text_typography_headline-3.ds-text_headline-3_tight.ds-text_headline-3_bold, span[data-auto="mainPrice"], span[class*="_price_"], div[class*="offer-price"] span'
+                    'span.ds-text.ds-text_weight_bold.ds-text_color_price-term'
                 ))
-            )[0]
+            )
             price_text = price_elem.text.strip()
-            result["price"] = price_text.replace('₽', '').replace('\xa0', '').strip()
-        except Exception:
+            print(f"Цена, найденная на странице: {price_text}")  # Для отладки
+
+            # Очистка от всех пробелов и ненужных символов
+            price_digits = re.sub(r'[^\d]', '', price_text)  # Убираем все, кроме цифр
+            result["price"] = int(price_digits) if price_digits else None
+        except Exception as e:
+            print(f"Ошибка при извлечении цены: {str(e)}")  # Для отладки
             result["price"] = "Ошибка: Цена не найдена"
 
         return result
 
     except Exception as e:
-        return {"nm_id": sku, "name": f"Ошибка: {str(e)}", "price": None}
+        return {"nm_id": int(sku) if sku.isdigit() else None, "name": f"Ошибка: {str(e)}", "price": None}
     finally:
         if driver:
             driver.quit()
+
+
+# === Точка входа ===
+if __name__ == "__main__":
+    url = "https://market.yandex.ru/product--ultratonkii-riukzak-dlia-noutbuka-14-diuimov/80441136?sku=102855978760&uniqueId=2520879"
+
+    sku, product_id = extract_sku_and_product_id(url)
+
+    if sku and product_id:
+        data = get_ym_data(sku, product_id)
+        print("Результат парсинга:")
+        print(data)
+    else:
+        print("Ошибка: Не удалось извлечь sku или product_id")
